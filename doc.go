@@ -1,11 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
-	"net/http/httptest"
+	// "net/http/httptest"
+	"encoding/json"
+	"io/ioutil"
 	"os"
 	"path"
+	"sort"
 	"strings"
 
 	"github.com/russross/blackfriday"
@@ -13,79 +17,148 @@ import (
 
 const indexFile = "README.md"
 
-var dir = http.Dir(".")
+var dir = http.Dir("/Users/raliste/Work/PreySecure/code/src")
+
+type byName []os.FileInfo
+
+func (s byName) Len() int           { return len(s) }
+func (s byName) Less(i, j int) bool { return s[i].Name() < s[j].Name() }
+func (s byName) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+
+type Dir struct {
+	Path       string        `json:"path"`
+	Name       string        `json:"name"`
+	IsDir      bool          `json:"is_dir"`
+	IsMarkdown bool          `json:"is_markdown"`
+	Size       int64         `json:"size,omitempty"`
+	Content    template.HTML `json:"content,omitempty"`
+	Children   []Dir         `json:"children,omitempty"`
+}
+
+func dirList(w http.ResponseWriter, name string, f http.File) {
+	dirs, err := f.Readdir(-1)
+	if err != nil {
+		return
+	}
+	sort.Sort(byName(dirs))
+
+	d := Dir{
+		Name:     name,
+		IsDir:    true,
+		Children: []Dir{},
+	}
+
+	for _, dd := range dirs {
+		d.Children = append(d.Children, Dir{
+			Name:       dd.Name(),
+			IsDir:      dd.IsDir(),
+			Size:       dd.Size(),
+			IsMarkdown: strings.HasSuffix(dd.Name(), ".md"),
+		})
+	}
+
+	out, err := json.MarshalIndent(d, "", "  ")
+	if err != nil {
+		return
+	}
+
+	fmt.Fprintf(w, "%s", out)
+
+}
 
 type MarkdownServer struct {
-	fs http.Handler
 }
 
 func (m *MarkdownServer) handleMarkdown(w http.ResponseWriter, r *http.Request) {
-	filename := path.Join(string(dir), r.URL.Path, indexFile)
+	upath := strings.TrimPrefix(r.URL.Path, "/-/")
 
-	_, err := os.Stat(filename)
-	if err == nil {
-		r.URL.Path = r.URL.Path + indexFile
+	if !strings.HasPrefix(upath, "/") {
+		upath = "/" + upath
 	}
 
-	if !strings.HasSuffix(r.URL.Path, ".md") {
-		m.fs.ServeHTTP(w, r)
-		return
-	}
-
-	rec := httptest.NewRecorder()
-	m.fs.ServeHTTP(rec, r)
-
-	unsafe := blackfriday.MarkdownCommon(rec.Body.Bytes())
-
-	tmpl, err := template.New("file").Parse(fileHTML)
+	f, err := dir.Open(path.Clean(upath))
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
+	defer f.Close()
 
-	data := struct {
-		Output template.HTML
-	}{
-		Output: template.HTML(string(unsafe)),
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	err = tmpl.Execute(w, data)
+	d, err := f.Stat()
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
 		return
 	}
+
+	if d.IsDir() {
+		dirList(w, d.Name(), f)
+		return
+	}
+
+	if !strings.HasSuffix(d.Name(), ".md") {
+		return
+	}
+
+	content, err := ioutil.ReadAll(f)
+	if err != nil {
+		return
+	}
+
+	unsafe := blackfriday.MarkdownCommon(content)
+
+	ff := Dir{
+		Name:       d.Name(),
+		IsDir:      false,
+		IsMarkdown: true,
+		Size:       d.Size(),
+		Content:    template.HTML(unsafe),
+	}
+
+	out, err := json.MarshalIndent(ff, "", "  ")
+	if err != nil {
+		return
+	}
+
+	fmt.Fprintf(w, "%s", out)
 }
 
 func (m *MarkdownServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	m.handleMarkdown(w, r)
-
 }
 
-func NewMarkdownServer(fs http.Handler) http.Handler {
-	return &MarkdownServer{fs}
+func NewMarkdownServer() http.Handler {
+	return &MarkdownServer{}
 }
 
 func main() {
-	fs := http.FileServer(dir)
-
-	http.Handle("/", NewMarkdownServer(fs))
+	http.Handle("/-/", NewMarkdownServer())
+	http.Handle("/static/", http.FileServer(http.Dir(".")))
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		tmpl, _ := template.New("").Parse(explorerHTML)
+		tmpl.Execute(w, nil)
+	})
 	http.ListenAndServe(":8080", nil)
 }
 
-const fileHTML = `<!DOCTYPE html>
+const explorerHTML = `<!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="/doc.css">
+<link rel="stylesheet" href="/static/doc.css">
+<script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js?autoload=false" defer="defer"></script>
 </head>
 <body>
-<div>
-<form method="get" action="/search">
-<input type="text" name="q" placeholder="Search documentation">
-</form>
-</div>
-<div>
-{{.Output}}
-</div>
+<table width="100%" border=1>
+<tr>
+<td colspan="2">
+<input type="text" placeholder="Search documentation">
+</td>
+</tr>
+<tr>
+<td width=20% valign=top>
+NAV
+<a href="#" onclick="update('..'); return false;">Back</a>
+<div id="nav"></div>
+</td>
+<td valign=top>OUTPUT<div id="output"></div></td>
+</tr>
+</table>
+<script src="/static/explorer.js"></script>
 </body>
 </html>`
