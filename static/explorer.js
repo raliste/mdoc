@@ -73,7 +73,12 @@ function update(dir) {
   })
 }
 
-update();
+function UpdateByHash() {
+  var hash = window.location.hash;
+  if (!hash) return false;
+  Update(hash.substring(1));
+  return true;
+}
 
 var KEYBOARD_T = 84;
 
@@ -85,4 +90,14 @@ window.onkeyup = function(e) {
       Update(path);  
     }
   }
+}
+
+window.onload = function() {
+  if (!UpdateByHash()) {
+    update();
+  }
+}
+
+window.onhashchange = function() {
+  UpdateByHash();
 }
