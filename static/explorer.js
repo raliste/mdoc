@@ -88,7 +88,8 @@ function UpdateByHash() {
   return true;
 }
 
-var KEYBOARD_T = 84;
+var KEYBOARD_T = 84,
+    KEYBOARD_C = 67;
 
 window.onkeyup = function(e) {
   e.preventDefault();
@@ -100,6 +101,15 @@ window.onkeyup = function(e) {
     if (path) {
       Update(path);  
     }
+  }
+
+  if (e.keyCode == KEYBOARD_C) {
+    var dialog = document.querySelector('dialog');
+
+    if(!dialog.open)
+      dialog.showModal();
+    else
+      dialog.close();
   }
 }
 
