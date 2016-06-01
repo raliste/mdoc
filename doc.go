@@ -74,6 +74,8 @@ func NewMarkdownServer(dir string) http.Handler {
 	return &MarkdownServer{http.Dir(dir)}
 }
 
+// TODO factorization
+// TODO error handling
 func (m *MarkdownServer) handleMarkdown(w http.ResponseWriter, r *http.Request) {
 	upath := strings.TrimPrefix(r.URL.Path, "/-/")
 
@@ -92,12 +94,29 @@ func (m *MarkdownServer) handleMarkdown(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	name := d.Name()
+
 	if d.IsDir() {
-		dirList(w, d.Name(), f)
+		index := strings.TrimSuffix(upath, "/") + "/README.md"
+		ff, err := m.dir.Open(index)
+		if err == nil {
+			defer ff.Close()
+			dd, err := ff.Stat()
+			if err == nil {
+				name = dd.Name()
+				f = ff
+				d = dd
+			}
+		}
+
+	}
+
+	if d.IsDir() {
+		dirList(w, name, f)
 		return
 	}
 
-	if !strings.HasSuffix(d.Name(), ".md") {
+	if !strings.HasSuffix(name, ".md") {
 		return
 	}
 
@@ -109,7 +128,7 @@ func (m *MarkdownServer) handleMarkdown(w http.ResponseWriter, r *http.Request) 
 	unsafe := blackfriday.MarkdownCommon(content)
 
 	ff := Dir{
-		Name:       d.Name(),
+		Name:       name,
 		IsDir:      false,
 		IsMarkdown: true,
 		Size:       d.Size(),
@@ -144,8 +163,10 @@ func main() {
 const explorerHTML = `<!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.indigo-pink.min.css">
 <link rel="stylesheet" href="/static/doc.css">
+<link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.indigo-pink.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+
 <script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
 <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js?autoload=false" defer="defer"></script>
 </head>
