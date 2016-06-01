@@ -6,6 +6,23 @@ img {
   max-width: 100%;
 }
 
+.page-content {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.page-content p {
+  font-size: 16px;
+}
+
+.page-content ul,
+.page-content ol {
+  font-size: 16px;
+}
+
+.page-content .mdl-progress {
+  width: auto;
+}
 /**
  * @license
  * Copyright (C) 2015 Google Inc.
