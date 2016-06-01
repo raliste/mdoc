@@ -4,6 +4,8 @@ This is a simple Markdown server for exploring technical documentation.
 
 The main and only product objective is to enable rich exploration of technical documentation (a la Google's g3doc).
 
+![mdoc](doc/screenshot.png)
+
 ## Work in progress
 
 This is a work in progress. It's currently used inside Prey to view through the `doc/` directories within the global codebase.
