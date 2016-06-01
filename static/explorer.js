@@ -18,20 +18,19 @@ function Dir(dir) {
 }
 
 Dir.prototype.element = function() {
-  var e = document.createElement('div');
   var a = document.createElement('a');
   a.innerHTML = this.name;
   a.href = '#';
+  a.className = 'mdl-navigation__link'
   a.onclick = function() {
     update(this);
     return false;
   }.bind(this);
-  e.appendChild(a);
-  return e;
+  return a;
 }
 
 function newRequest(path, cb) {
-  output.innerHTML = 'Working...';
+  output.innerHTML = '<div id="p2" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>';
   var r = new XMLHttpRequest();
   r.addEventListener('load', cb)
   r.open('GET', '/-/' + path);

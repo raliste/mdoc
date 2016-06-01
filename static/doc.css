@@ -1,42 +1,5 @@
-* {
-  margin: 0;
-  padding: 0;
-}
-
-body, input {
-  font-family: 'Lucida Grande', sans-serif;
-  font-size: 14px;
-}
-
-input {
-  padding: 5px;
-}
-
-table {
-  border: solid 1px #ccc;
-  border-collapse: collapse;
-}
-
-table th, table td {
-  border: solid 1px #ccc;
-}
-
-pre {
-  background-color: #eee;
-  padding: 15px;
-}
-
-ul {
-  list-style-type: circle;
-}
-
-ul, ol {
-  padding-left: 20px;
-  
-}
-
-p {
-  margin: 10px 0;
+#output {
+  padding: 0 15px;
 }
 
 /**

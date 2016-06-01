@@ -144,28 +144,27 @@ func main() {
 const explorerHTML = `<!DOCTYPE html>
 <html>
 <head>
+<link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.indigo-pink.min.css">
 <link rel="stylesheet" href="/static/doc.css">
+<script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
 <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js?autoload=false" defer="defer"></script>
 </head>
 <body>
-<table width="100%" border=1>
-<tr>
-<td colspan="2">
-<input type="text" placeholder="Search documentation">
-</td>
-</tr>
-<tr>
-<td width=20% valign=top>
-NAV
-<a href="#" onclick="update('..'); return false;">Back</a>
-<div id="nav"></div>
-</td>
-<td valign=top>
-OUTPUT
-<div id="output">Loading...</div>
-</td>
-</tr>
-</table>
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer">
+  <div class="mdl-layout__drawer">
+    <span class="mdl-layout-title">Docs</span>
+    <nav class="mdl-navigation">
+	  <a href="#" class="mdl-navigation__link" onclick="update('..'); return false;">Back</a>
+	  <div id="nav">
+	  </div>
+    </nav>
+  </div>
+  <main class="mdl-layout__content">
+    <div class="page-content">
+      <div id="output"></div>
+	</div>
+  </main>
+</div>
 <script src="/static/explorer.js"></script>
 </body>
 </html>`
