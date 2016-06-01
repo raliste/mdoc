@@ -24,12 +24,14 @@ Dir.prototype.element = function() {
   a.href = '#';
   a.onclick = function() {
     update(this);
+    return false;
   }.bind(this);
   e.appendChild(a);
   return e;
 }
 
 function newRequest(path, cb) {
+  output.innerHTML = 'Working...';
   var r = new XMLHttpRequest();
   r.addEventListener('load', cb)
   r.open('GET', '/-/' + path);
@@ -54,21 +56,25 @@ function update(dir) {
     parents.push(dir.name);
   }
 
+  history.pushState(null, null, '#' + parents.join('/'));
+
   newRequest(parents.join('/'), function() {
     try {
-      var dir = JSON.parse(this.responseText);  
+      var dir = JSON.parse(this.responseText);
     } catch (e) {
       console.error(e, this.responseText);
       return;
     }
 
     var d = new Dir(dir);
-        
+
     if (d.is_markdown) {
       // TODO move to blackfriday.HTML.Code
       d.content = d.content.replace(/<pre><code class=/g, '<pre class="prettyprint"><code class="');
       output.innerHTML = d.content;
       PR.prettyPrint();
+    } else {
+      output.innerHTML = '';
     }
   })
 }
@@ -98,6 +104,6 @@ window.onload = function() {
   }
 }
 
-window.onhashchange = function() {
+window.onhashchange = function(e) {
   UpdateByHash();
 }
