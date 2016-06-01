@@ -90,6 +90,9 @@ var KEYBOARD_T = 84;
 
 window.onkeyup = function(e) {
   e.preventDefault();
+
+  if (e.target.nodeName == 'INPUT') return;
+
   if (e.keyCode == KEYBOARD_T) {
     var path = prompt(">>>", parents.join('/'));
     if (path) {
