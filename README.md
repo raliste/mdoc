@@ -18,3 +18,7 @@ The ultimate goal is to support the following features (in order of importance):
 6. Git support
 7. Customizable: users should be able to edit the main HTML template
 8. Interoperable: users should be able to use similar applications, such as GitBook, GitHub online editing, etc
+
+## Testing
+
+If you dare to see what is this about you can just clone this repository and run `go run doc.go -dir=/path/to/your/docs/dir`.
