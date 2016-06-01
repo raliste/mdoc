@@ -79,12 +79,11 @@ function update(dir) {
 }
 
 function UpdateByHash() {
-  var hash = window.location.hash;
-  if (!hash) {
-    hash = window.location.pathname;
-    if (!hash)
-      return false;
-  }
+  if (window.location.hash)
+    return;
+  var hash = window.location.pathname;
+  if (!hash)
+    return false;
   Update(hash.substring(1));
   return true;
 }
