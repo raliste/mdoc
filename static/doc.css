@@ -2,6 +2,10 @@
   padding: 0 15px;
 }
 
+img {
+  max-width: 100%;
+}
+
 /**
  * @license
  * Copyright (C) 2015 Google Inc.

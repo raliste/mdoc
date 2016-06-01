@@ -4,7 +4,7 @@ This is a simple Markdown server for exploring technical documentation.
 
 The main and only product objective is to enable rich exploration of technical documentation (a la Google's g3doc).
 
-![mdoc](doc/screenshot.png)
+![mdoc](https://github.com/raliste/mdoc/raw/master/doc/screenshot.png)
 
 ## Work in progress
 
