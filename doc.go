@@ -1,12 +1,12 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
 	"html/template"
-	"net/http"
-	// "net/http/httptest"
-	"encoding/json"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"sort"
@@ -17,7 +17,7 @@ import (
 
 const indexFile = "README.md"
 
-var dir = http.Dir("/Users/raliste/Work/PreySecure/code/src")
+var dir = flag.String("dir", ".", "")
 
 type byName []os.FileInfo
 
@@ -67,6 +67,11 @@ func dirList(w http.ResponseWriter, name string, f http.File) {
 }
 
 type MarkdownServer struct {
+	dir http.FileSystem
+}
+
+func NewMarkdownServer(dir string) http.Handler {
+	return &MarkdownServer{http.Dir(dir)}
 }
 
 func (m *MarkdownServer) handleMarkdown(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +81,7 @@ func (m *MarkdownServer) handleMarkdown(w http.ResponseWriter, r *http.Request) 
 		upath = "/" + upath
 	}
 
-	f, err := dir.Open(path.Clean(upath))
+	f, err := m.dir.Open(path.Clean(upath))
 	if err != nil {
 		return
 	}
@@ -123,17 +128,16 @@ func (m *MarkdownServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	m.handleMarkdown(w, r)
 }
 
-func NewMarkdownServer() http.Handler {
-	return &MarkdownServer{}
-}
-
 func main() {
-	http.Handle("/-/", NewMarkdownServer())
+	flag.Parse()
+
+	http.Handle("/-/", NewMarkdownServer(*dir))
 	http.Handle("/static/", http.FileServer(http.Dir(".")))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, _ := template.New("").Parse(explorerHTML)
 		tmpl.Execute(w, nil)
 	})
+
 	http.ListenAndServe(":8080", nil)
 }
 
@@ -156,7 +160,10 @@ NAV
 <a href="#" onclick="update('..'); return false;">Back</a>
 <div id="nav"></div>
 </td>
-<td valign=top>OUTPUT<div id="output"></div></td>
+<td valign=top>
+OUTPUT
+<div id="output">Loading...</div>
+</td>
 </tr>
 </table>
 <script src="/static/explorer.js"></script>
