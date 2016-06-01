@@ -55,7 +55,7 @@ function update(dir) {
     parents.push(dir.name);
   }
 
-  history.pushState(null, null, '#' + parents.join('/'));
+  history.pushState(null, null, "/" + parents.join('/'));
 
   newRequest(parents.join('/'), function() {
     try {
@@ -80,7 +80,11 @@ function update(dir) {
 
 function UpdateByHash() {
   var hash = window.location.hash;
-  if (!hash) return false;
+  if (!hash) {
+    hash = window.location.pathname;
+    if (!hash)
+      return false;
+  }
   Update(hash.substring(1));
   return true;
 }
@@ -106,6 +110,6 @@ window.onload = function() {
   }
 }
 
-window.onhashchange = function(e) {
+window.onpopstate = function(e) {
   UpdateByHash();
 }
